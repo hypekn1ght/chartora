@@ -7,19 +7,14 @@ import { AnalysisCard } from '@/components/AnalysisCard';
 import { EmptyState } from '@/components/EmptyState';
 import { sampleAnalyses } from '@/data/sampleData';
 import { Analysis } from '@/types/Analysis';
-import { loadAnalysisHistory } from '@/data/analysisStorage';
+import { useAnalysisStore } from '@/data/analysisStorage';
 
 export default function HistoryScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const router = useRouter();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'bullish' | 'bearish'>('all');
-  const [userAnalyses, setUserAnalyses] = useState<Analysis[]>([]);
-
-  useEffect(() => {
-    loadAnalysisHistory().then(setUserAnalyses);
-  }, []);
+  const userAnalyses = useAnalysisStore(state => state.analyses);
 
   const allAnalyses = [...userAnalyses, ...sampleAnalyses];
   const filteredAnalyses = allAnalyses.filter(analysis => {

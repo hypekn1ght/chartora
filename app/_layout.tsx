@@ -5,6 +5,7 @@ import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_7
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { SplashScreen } from 'expo-router';
 import { View, Text } from 'react-native';
+import 'expo-dev-client';
 
 
 // Prevent the splash screen from auto-hiding
@@ -49,7 +50,7 @@ export default function RootLayout() {
         <Stack.Screen name="history" />
         <Stack.Screen name="+not-found" />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </>
   );
 }

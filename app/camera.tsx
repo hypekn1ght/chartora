@@ -25,8 +25,7 @@ const OPENAI_API_KEY = Constants.expoConfig?.extra?.OPENAI_API_KEY || process.en
 
 export default function CameraScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<CameraType>('back');
   const [hasCapture, setHasCapture] = useState(false);
@@ -55,7 +54,7 @@ export default function CameraScreen() {
         setCapturedImage(photo.uri);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to take picture. Please try again.');
+      Alert.alert('Error', `Failed to take picture. Please try again.\n ${error}`);
     }
   };
 
@@ -76,7 +75,14 @@ export default function CameraScreen() {
         reader.readAsDataURL(blob);
       }));
       // Call OpenAI API
-      const prompt = `You are a financial chart analysis assistant. Analyze the uploaded chart image and return a JSON object with the following keys: trend (string), volatility (string), volume (string), marketSentiment (string), gamePlan (string, paragraph), detailedAnalysis (array of {title, description}), imageAnalysisSummary (string, optional). Example: {"trend":"Bullish","volatility":"High","volume":"Medium","marketSentiment":"Neutral","gamePlan":"...","detailedAnalysis":[{"title":"Bullish Momentum","description":"..."}],"imageAnalysisSummary":"..."}`;
+      const prompt = `You are a financial chart analysis assistant. 
+      Analyze the uploaded chart image and return a JSON object with 
+      the following keys: ticker (string), trend (string), volatility (string), volume (string), 
+      marketSentiment (string), gamePlan (string, paragraph), 
+      detailedAnalysis (array of {title, description}), 
+      imageAnalysisSummary (string, optional). 
+      Example: {"trend":"Bullish","volatility":"High","volume":"Medium","marketSentiment":"Neutral","gamePlan":"...",
+      "detailedAnalysis":[{"title":"Bullish Momentum","description":"..."}],"imageAnalysisSummary":"..."}`;
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -84,7 +90,7 @@ export default function CameraScreen() {
           'Authorization': `Bearer ${OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: 'gpt-4o',
+          model: 'gpt-4o-mini',
           messages: [
             { role: 'system', content: prompt },
             { role: 'user', content: [{ type: 'image_url', image_url: { url: `data:image/png;base64,${base64}` } }] },
@@ -93,18 +99,28 @@ export default function CameraScreen() {
         }),
       });
       const data = await response.json();
-      let content = data.choices?.[0]?.message?.content;
+      let content: string | undefined = data.choices?.[0]?.message?.content;
       let parsed: any = null;
       try {
-        parsed = JSON.parse(content);
+        if (content) {
+          parsed = JSON.parse(content);
+        }
       } catch (e) {
-        const match = content.match(/\{[\s\S]*\}/);
-        if (match) parsed = JSON.parse(match[0]);
+        if (content) {
+          const match = content.match(/\{[\s\S]*\}/);
+          if (match) parsed = JSON.parse(match[0]);
+        }
       }
-      if (!parsed) throw new Error('Could not parse analysis result.\nRaw content: ' + content);
+      if (!parsed) {
+        throw new Error(
+          'Could not parse analysis result.\nRaw content: ' + (content ?? '[No content]') +
+          '\nRaw API response: ' + JSON.stringify(data)
+        );
+      }
       const result = {
         id: Date.now().toString(),
         imageUri: capturedImage,
+        symbol: parsed.ticker,
         trend: parsed.trend,
         volatility: parsed.volatility,
         volume: parsed.volume,
@@ -128,7 +144,7 @@ export default function CameraScreen() {
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.card }]}
-          onPress={() => router.push('/')}
+          onPress={() => router.back()}
         >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>
@@ -142,7 +158,7 @@ export default function CameraScreen() {
       <View style={[styles.permissionContainer, { backgroundColor: colors.background }]}>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: colors.card }]}
-          onPress={() => router.push('/')}
+          onPress={() => router.back()}
         >
           <ArrowLeft size={24} color={colors.text} />
         </TouchableOpacity>

@@ -5,10 +5,8 @@ import { Bell, Moon, CreditCard, CircleHelp as HelpCircle, ChevronRight, ArrowLe
 import Colors from '@/constants/Colors';
 
 export default function ProfileScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const router = useRouter();
-  const isDarkMode = colorScheme === 'dark';
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -53,7 +51,7 @@ export default function ProfileScreen() {
             
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
             
-            <View style={styles.settingRow}>
+            {/* <View style={styles.settingRow}>
               <View style={styles.settingLeft}>
                 <View style={[styles.iconBg, { backgroundColor: colors.secondary + '20' }]}>
                   <Moon size={20} color={colors.secondary} />
@@ -67,7 +65,7 @@ export default function ProfileScreen() {
                 trackColor={{ false: '#767577', true: colors.primary + '70' }}
                 thumbColor={isDarkMode ? colors.primary : '#f4f3f4'}
               />
-            </View>
+            </View> */}
           </View>
         </View>
         

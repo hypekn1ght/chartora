@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, useColorScheme, TouchableOpacity, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Share } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Share2, ArrowLeft, BookmarkPlus, BookmarkCheck } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { Button } from '@/components/Button';
 import { sampleAnalyses } from '@/data/sampleData';
 import { Analysis } from '@/types/Analysis';
-import { getAnalysisById } from '@/data/analysisStorage';
+import { loadAnalysisHistory } from '@/data/analysisStorage';
 
 export default function ResultScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   useEffect(() => {
     async function fetchAnalysis() {
-      let found = await getAnalysisById(id as string);
+      const analyses = await loadAnalysisHistory();
+      let found = analyses.find(item => item.id === id);
       if (!found) {
         found = sampleAnalyses.find(item => item.id === id);
       }
@@ -64,7 +64,7 @@ export default function ResultScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <TouchableOpacity
         style={[styles.backButton, { backgroundColor: colors.card }]}
-        onPress={() => router.push('/')}
+        onPress={() => router.back()}
       >
         <ArrowLeft size={24} color={colors.text} />
       </TouchableOpacity>
@@ -123,11 +123,11 @@ export default function ResultScreen() {
               style={[
                 styles.confidenceFill, 
                 { 
-                  width: `${analysis.confidence}%`,
+                  width: analysis.confidence != null ? `${analysis.confidence}%` : '0%',
                   backgroundColor: 
-                    analysis.confidence > 80 
+                    (analysis.confidence ?? 0) > 80 
                       ? colors.success 
-                      : analysis.confidence > 50 
+                      : (analysis.confidence ?? 0) > 50 
                         ? colors.warning 
                         : colors.error 
                 }
@@ -139,9 +139,9 @@ export default function ResultScreen() {
               styles.confidenceValue, 
               { 
                 color: 
-                  analysis.confidence > 80 
+                  (analysis.confidence ?? 0) > 80 
                     ? colors.success 
-                    : analysis.confidence > 50 
+                    : (analysis.confidence ?? 0) > 50 
                       ? colors.warning 
                       : colors.error 
               }
@@ -199,11 +199,11 @@ export default function ResultScreen() {
             Analysis Summary
           </Text>
           <Text style={[styles.summary, { color: colors.text }]}>
-            {analysis.summary}
+            {analysis.gamePlan!}
           </Text>
         </View>
         
-        <View style={styles.actions}>
+        <View style={styles.actions}>s
           <Button
             title="New Analysis"
             onPress={() => router.push('/camera')}

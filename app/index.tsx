@@ -6,8 +6,7 @@ import Colors from '@/constants/Colors';
 import { RainbowButton } from '../components/ui/rainbow-button';
 
 export default function Dashboard() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const router = useRouter();
   const [showOptions, setShowOptions] = useState(false);
 
@@ -47,7 +46,7 @@ export default function Dashboard() {
       </View>
 
       <Image
-        source={{ uri: 'https://images.pexels.com/photos/7567486/pexels-photo-7567486.jpeg' }}
+        source={require('../assets/images/icon.png')}
         style={styles.logo}
         resizeMode="contain"
       />
@@ -82,8 +81,8 @@ export default function Dashboard() {
               style={[styles.optionButton, { backgroundColor: colors.secondary }]}
               onPress={() => handleOptionSelect('upload')}
             >
-              <ImagePlus size={24} color="#fff" />
-              <Text style={styles.optionText}>Upload Photo</Text>
+              <ImagePlus size={24} color="#000" />
+              <Text style={styles.uploadText}>Upload Photo</Text>
             </TouchableOpacity>
             
             <TouchableOpacity
@@ -117,6 +116,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
+    marginTop: 8,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -181,6 +181,11 @@ const styles = StyleSheet.create({
   },
   optionText: {
     color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+  uploadText: {
+    color: '#000',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
   },
