@@ -1,15 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Bell, Moon, CreditCard, CircleHelp as HelpCircle, ChevronRight, ArrowLeft } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
+import { FadeModal } from '@/components/FadeModal';
 
 export default function ProfileScreen() {
+  const [showModal, setShowModal] = useState(false);
   const colors = Colors['dark'];
   const router = useRouter();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+      <TouchableOpacity
+        style={{ alignSelf: 'flex-end', margin: 8 }}
+        onPress={() => setShowModal(true)}
+      >
+        <Text style={{ color: colors.primary }}>Show Info</Text>
+      </TouchableOpacity>
+      <FadeModal visible={showModal} onClose={() => setShowModal(false)}>
+        <View style={{ backgroundColor: colors.card, padding: 24, borderRadius: 16 }}>
+          <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>Profile Info</Text>
+          <Text style={{ color: colors.text, marginBottom: 16 }}>
+            Manage your profile, preferences, and notification settings here.
+          </Text>
+          <TouchableOpacity onPress={() => setShowModal(false)} style={{ alignSelf: 'flex-end', marginTop: 8 }}>
+            <Text style={{ color: colors.primary }}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </FadeModal>
       <TouchableOpacity
         style={[styles.backButton, { backgroundColor: colors.card }]}
         onPress={() => router.back()}

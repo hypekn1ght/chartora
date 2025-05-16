@@ -8,8 +8,10 @@ import { EmptyState } from '@/components/EmptyState';
 import { sampleAnalyses } from '@/data/sampleData';
 import { Analysis } from '@/types/Analysis';
 import { useAnalysisStore } from '@/data/analysisStorage';
+import { FadeModal } from '@/components/FadeModal';
 
 export default function HistoryScreen() {
+  const [showModal, setShowModal] = useState(false);
   const colors = Colors['dark'];
   const router = useRouter();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -35,7 +37,24 @@ export default function HistoryScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+      <TouchableOpacity
+        style={{ alignSelf: 'flex-end', margin: 8 }}
+        onPress={() => setShowModal(true)}
+      >
+        <Text style={{ color: colors.primary }}>Show Info</Text>
+      </TouchableOpacity>
+      <FadeModal visible={showModal} onClose={() => setShowModal(false)}>
+        <View style={{ backgroundColor: colors.card, padding: 24, borderRadius: 16 }}>
+          <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>History Info</Text>
+          <Text style={{ color: colors.text, marginBottom: 16 }}>
+            This screen shows your saved chart analyses. Tap an item to expand for more details.
+          </Text>
+          <TouchableOpacity onPress={() => setShowModal(false)} style={{ alignSelf: 'flex-end', marginTop: 8 }}>
+            <Text style={{ color: colors.primary }}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </FadeModal>
       <TouchableOpacity
         style={[styles.backButton, { backgroundColor: colors.card }]}
         onPress={() => router.back()}

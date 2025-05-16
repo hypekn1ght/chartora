@@ -7,6 +7,8 @@ import { Button } from '@/components/Button';
 import { sampleAnalyses } from '@/data/sampleData';
 import { Analysis } from '@/types/Analysis';
 import { loadAnalysisHistory } from '@/data/analysisStorage';
+import { AccordionSection } from '@/components/AccordionSection';
+import { FadeModal } from '@/components/FadeModal';
 
 export default function ResultScreen() {
   const { id } = useLocalSearchParams();
@@ -14,6 +16,7 @@ export default function ResultScreen() {
   const colors = Colors['dark'];
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     async function fetchAnalysis() {
@@ -85,6 +88,25 @@ export default function ResultScreen() {
         </TouchableOpacity>
       </View>
       
+      <TouchableOpacity
+        style={[styles.iconButton, { alignSelf: 'flex-end', margin: 8 }]}
+        onPress={() => setShowModal(true)}
+      >
+        <Text style={{ color: colors.primary }}>Show Info</Text>
+      </TouchableOpacity>
+
+      <FadeModal visible={showModal} onClose={() => setShowModal(false)}>
+        <View style={{ backgroundColor: colors.card, padding: 24, borderRadius: 16 }}>
+          <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>Analysis Info</Text>
+          <Text style={{ color: colors.text, marginBottom: 16 }}>
+            This screen shows the result of your chart analysis. Use the share and bookmark buttons to save or share your analysis.
+          </Text>
+          <TouchableOpacity onPress={() => setShowModal(false)} style={{ alignSelf: 'flex-end', marginTop: 8 }}>
+            <Text style={{ color: colors.primary }}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </FadeModal>
+
       <ScrollView style={styles.scrollView}>
         <View style={styles.imageContainer}>
           {analysis.imageUri && (
@@ -113,8 +135,9 @@ export default function ResultScreen() {
             </View>
           </View>
         </View>
+
         
-        <View style={[styles.confidenceBar, { backgroundColor: colors.card }]}>
+        {/* <View style={[styles.confidenceBar, { backgroundColor: colors.card }]}>
           <Text style={[styles.confidenceLabel, { color: colors.textDim }]}>
             AI Confidence
           </Text>
@@ -149,9 +172,9 @@ export default function ResultScreen() {
           >
             {analysis.confidence}%
           </Text>
-        </View>
+        </View> */}
         
-        <View style={[styles.section, { backgroundColor: colors.card }]}>
+        {/* <View style={[styles.section, { backgroundColor: colors.card }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Pattern Detected
           </Text>
@@ -192,7 +215,7 @@ export default function ResultScreen() {
               </Text>
             </View>
           </View>
-        </View>
+        </View> */}
         
         <View style={[styles.section, { backgroundColor: colors.card }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -202,7 +225,28 @@ export default function ResultScreen() {
             {analysis.gamePlan!}
           </Text>
         </View>
-        
+       
+        {/* Detailed Analysis Accordion Section */}
+        <View style={{ marginHorizontal: 16, marginTop: 24 }}>
+          <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>
+            Detailed Analysis
+          </Text>
+          {(analysis?.detailedAnalysis || [
+            { title: 'Bullish Momentum', content: 'The chart shows strong bullish momentum, indicating buyers are in control.' },
+            { title: 'EMA Bullish Crossover', content: 'A bullish crossover of the EMA lines signals a potential upward trend.' },
+            { title: 'Support and Resistance Levels', content: 'Key support and resistance levels have been identified for trade planning.' },
+            { title: 'Volume Alignment with Price Movements', content: 'Volume trends are confirming price action, adding confidence to the setup.' },
+            { title: 'Potential for Continuation Rally', content: 'There is potential for a continuation rally if volume increases.' },
+          ]).map((section, idx) => (
+            <AccordionSection
+              key={section.title}
+              title={section.title}
+              content={section.description}
+              index={idx}
+            />
+          ))}
+        </View>
+
         <View style={styles.actions}>s
           <Button
             title="New Analysis"

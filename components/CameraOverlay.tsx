@@ -25,12 +25,12 @@ export function CameraOverlay({ onCapture, onClose, onGallery }: CameraOverlayPr
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.closeButton, { backgroundColor: colors.card }]}
           onPress={onClose}
         >
           <X size={24} color={colors.text} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <Text style={[styles.headerText, { color: colors.text, backgroundColor: colors.card }]}>
           Align Chart
         </Text>
@@ -76,40 +76,40 @@ const styles = StyleSheet.create({
   },
   cornerTL: {
     position: 'absolute',
-    top: 0,
+    top: 70,
     left: 0,
-    width: 20,
-    height: 20,
+    width: 40,
+    height: 40,
     borderTopWidth: 2,
     borderLeftWidth: 2,
     borderTopLeftRadius: 4,
   },
   cornerTR: {
     position: 'absolute',
-    top: 0,
+    top: 70,
     right: 0,
-    width: 20,
-    height: 20,
+    width: 40,
+    height: 40,
     borderTopWidth: 2,
     borderRightWidth: 2,
     borderTopRightRadius: 4,
   },
   cornerBL: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 160,
     left: 0,
-    width: 20,
-    height: 20,
+    width: 40,
+    height: 40,
     borderBottomWidth: 2,
     borderLeftWidth: 2,
     borderBottomLeftRadius: 4,
   },
   cornerBR: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 160,
     right: 0,
-    width: 20,
-    height: 20,
+    width: 40,
+    height: 40,
     borderBottomWidth: 2,
     borderRightWidth: 2,
     borderBottomRightRadius: 4,

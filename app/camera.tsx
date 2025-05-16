@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
-  Alert, 
-  Image, 
+import {
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  Alert,
+  Image,
   useColorScheme,
   Platform,
   ActivityIndicator
@@ -20,10 +20,12 @@ import { Button } from '@/components/Button';
 import { sampleAnalyses } from '@/data/sampleData';
 import { saveAnalysisToStorage } from '@/data/analysisStorage';
 import Constants from 'expo-constants';
+import { FadeModal } from '@/components/FadeModal';
 
 const OPENAI_API_KEY = Constants.expoConfig?.extra?.OPENAI_API_KEY || process.env.EXPO_PUBLIC_OPENAI_API_KEY;
 
 export default function CameraScreen() {
+  const [showModal, setShowModal] = useState(false);
   const router = useRouter();
   const colors = Colors['dark'];
   const [permission, requestPermission] = useCameraPermissions();
@@ -43,7 +45,7 @@ export default function CameraScreen() {
 
   const handleCapture = async () => {
     if (!cameraRef.current) return;
-    
+
     try {
       if (Platform.OS === 'web') {
         setHasCapture(true);
@@ -74,15 +76,58 @@ export default function CameraScreen() {
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       }));
+
+      const today = new Date();
+      const todayString = today.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
       // Call OpenAI API
-      const prompt = `You are a financial chart analysis assistant. 
-      Analyze the uploaded chart image and return a JSON object with 
-      the following keys: ticker (string), trend (string), volatility (string), volume (string), 
-      marketSentiment (string), gamePlan (string, paragraph), 
-      detailedAnalysis (array of {title, description}), 
-      imageAnalysisSummary (string, optional). 
-      Example: {"trend":"Bullish","volatility":"High","volume":"Medium","marketSentiment":"Neutral","gamePlan":"...",
-      "detailedAnalysis":[{"title":"Bullish Momentum","description":"..."}],"imageAnalysisSummary":"..."}`;
+      const prompt = `You are an ICT financial chart analysis expert. today's dates is ${todayString}. 
+      Analyze the uploaded chart image and return a JSON object with the following keys ONLY:
+      - ticker (string)
+      - trend (string)
+      - volatility (string)
+      - volume (string)
+      - marketSentiment (string)
+      - gamePlan (string, paragraph)
+      - detailedAnalysis (array of 5 objects, each with {title: string, description: string}, see below for exact required titles and order)
+      - imageAnalysisSummary (string, optional)
+
+      For the detailedAnalysis array, always include EXACTLY 5 objects, in this order, with these titles:
+      1. "Daily Bias" — Analyze why the chart is bullish or bearish.
+      2. "Order / Breaker Block" — Identify any order or breaker block, specify price points, give a 1 min explicit explanation on how to trade using this Order / Breaker Block in this scenario.
+      3. "Fair Value Gap" — Identify any fair value gap, specify price points, give a 1 min explicit explanation how to trade using this Fair Value Gap in this scenario.
+      4. "Economic Data" — List the dates of the most important upcoming US economic data release in the next 7 days from today, these data maybe Non-Farm Payrolls (NFP), Consumer Price Index (CPI), 
+      Federal Funds Rate / FOMC Statement, Gross Domestic Product (GDP), Unemployment Rate, Average Hourly Earnings, Core CPI / Core PCE Price Index, ISM Manufacturing and Services PMIs, 
+      Retail Sales, Initial Jobless Claims and give a 1 min explicit explanation on how it affects price direction in this scenario, give me the exact dates (DD-MMM), example: higher CPI is bad for risk assets since america is trying to fight inflation.
+      5. "Moon Phase" — List the date of new moon or full moon in the next month from today and give a 1 min explicit explanation on how it affects price direction in this scenario, give me the exact dates (DD-MMM), example: new moon usually means new beginnings which could lead to more buys in the market.
+
+      If any item is not found, set description to "Not detected" or "No significant [item] found."
+
+      Return only the JSON object, with all fields present. Do not include any explanation or formatting outside the JSON.
+
+      Example:
+      {
+        "ticker": "AAPL",
+        "trend": "Bullish",
+        "volatility": "High",
+        "volume": "Medium",
+        "marketSentiment": "Neutral",
+        "gamePlan": "Wait for a pullback to the support level before entering long. Set stop loss below recent swing low.",
+        "detailedAnalysis": [
+          {"title": "Daily Bias", "description": "The chart shows a strong bullish trend with higher highs and higher lows."},
+          {"title": "Order / Breaker Block", "description": "Order block detected at $180.50 - $182.00."},
+          {"title": "Fair Value Gap", "description": "Fair value gap between $185.00 and $187.00."},
+          {"title": "Economic Data", "description": "Upcoming US CPI data could increase volatility in tech stocks."},
+          {"title": "Moon Phase", "description": "Next full moon is historically associated with increased volatility."}
+        ],
+        "imageAnalysisSummary": "The chart indicates a bullish continuation setup."
+      }
+
+      `;
+      Alert.alert('prompt: ', prompt);
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -168,7 +213,7 @@ export default function CameraScreen() {
             Camera Access Required
           </Text>
           <Text style={[styles.permissionText, { color: colors.textDim }]}>
-            We need camera access to analyze trading charts. Your photos are processed securely 
+            We need camera access to analyze trading charts. Your photos are processed securely
             and never shared without your permission.
           </Text>
           <Button
@@ -182,7 +227,24 @@ export default function CameraScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+      <TouchableOpacity
+        style={{ alignSelf: 'flex-end', margin: 8 }}
+        onPress={() => setShowModal(true)}
+      >
+        <Text style={{ color: colors.primary }}>Show Info</Text>
+      </TouchableOpacity>
+      <FadeModal visible={showModal} onClose={() => setShowModal(false)}>
+        <View style={{ backgroundColor: colors.card, padding: 24, borderRadius: 16 }}>
+          <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 18, marginBottom: 12 }}>Camera Info</Text>
+          <Text style={{ color: colors.text, marginBottom: 16 }}>
+            Use the camera to capture a chart for analysis. Your photo will not be uploaded or shared.
+          </Text>
+          <TouchableOpacity onPress={() => setShowModal(false)} style={{ alignSelf: 'flex-end', marginTop: 8 }}>
+            <Text style={{ color: colors.primary }}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </FadeModal>
       <TouchableOpacity
         style={[styles.backButton, { backgroundColor: colors.card }]}
         onPress={() => router.back()}
@@ -197,49 +259,50 @@ export default function CameraScreen() {
               <Image source={{ uri: capturedImage }} style={styles.capturedImage} />
             )}
           </AnimatedCamera>
-          
+
           <View style={styles.reviewControls}>
-            <Button 
-              title="Retake" 
+            <Button
+              title="Retake"
               variant="outline"
               onPress={handleRetake}
               style={styles.reviewButton}
             />
-            <Button 
-              title="Analyze Chart" 
+            <Button
+              title="Analyze Chart"
               onPress={handleAnalyze}
               loading={isAnalyzing}
               style={styles.reviewButton}
             />
           </View>
         </View>
-      ) : (
-        <>
+    ) : (
+      <>
+        <View style={{ flex: 1 }}>
           <CameraView
             style={styles.camera}
             facing={facing}
             ref={cameraRef}
-          >
-            <CameraOverlay
-              onCapture={handleCapture}
-              onClose={() => router.push('/')}
-              onGallery={() => {
-                setHasCapture(true);
-                setCapturedImage('https://i.imgur.com/FICdenm.png');
-              }}
-            />
-          </CameraView>
-          
-          <View style={[styles.tipContainer, { backgroundColor: colors.card }]}>
-            <AlertCircle size={16} color={colors.warning} style={styles.tipIcon} />
-            <Text style={[styles.tipText, { color: colors.textDim }]}>
-              For best results, ensure good lighting and a clear view of the chart
-            </Text>
-          </View>
-        </>
-      )}
-    </View>
-  );
+          />
+          <CameraOverlay
+            onCapture={handleCapture}
+            onClose={() => router.push('/')}
+            onGallery={() => {
+              setHasCapture(true);
+              setCapturedImage('https://i.imgur.com/FICdenm.png');
+            }}
+          />
+        </View>
+
+        {/* <View style={[styles.tipContainer, { backgroundColor: colors.card }]}>
+          <AlertCircle size={16} color={colors.warning} style={styles.tipIcon} />
+          <Text style={[styles.tipText, { color: colors.textDim }]}>
+            For best results, ensure good lighting and a clear view of the chart
+          </Text>
+        </View> */}
+      </>
+    )}
+  </View>
+);
 }
 
 const styles = StyleSheet.create({

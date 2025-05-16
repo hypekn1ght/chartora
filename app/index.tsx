@@ -62,9 +62,14 @@ export default function Dashboard() {
       <Modal
         visible={showOptions}
         transparent={true}
-        animationType="slide"
+        animationType="slide" // Restored to 'slide' for vertical modal animation on Analyze
         onRequestClose={() => setShowOptions(false)}
       >
+      {/*
+        To achieve a true horizontal slide transition, consider wrapping the modal content in an Animated.View
+        and animating the translateX property using react-native-reanimated or Animated API.
+        The built-in Modal only supports 'slide' (vertical) and 'fade'.
+      */}
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>Choose Option</Text>
